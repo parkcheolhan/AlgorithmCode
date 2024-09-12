@@ -1,5 +1,7 @@
 package com.example.프로그래머스.PCCP기출문제.퍼즐게임챌린지;
 
+import java.util.Arrays;
+
 //당신은 순서대로 n개의 퍼즐을 제한 시간 내에 풀어야 하는 퍼즐 게임을 하고 있습니다. 각 퍼즐은 난이도와 소요 시간이 정해져 있습니다. 당신의 숙련도에 따라 퍼즐을 풀 때 틀리는 횟수가 바뀌게 됩니다. 현재 퍼즐의 난이도를 diff, 현재 퍼즐의 소요 시간을 time_cur, 이전 퍼즐의 소요 시간을 time_prev, 당신의 숙련도를 level이라 하면, 게임은 다음과 같이 진행됩니다.
 //
 //diff ≤ level이면 퍼즐을 틀리지 않고 time_cur만큼의 시간을 사용하여 해결합니다.
@@ -14,29 +16,48 @@ package com.example.프로그래머스.PCCP기출문제.퍼즐게임챌린지;
 //퍼즐의 난이도를 순서대로 담은 1차원 정수 배열 diffs, 퍼즐의 소요 시간을 순서대로 담은 1차원 정수 배열 times, 전체 제한 시간 limit이 매개변수로 주어집니다. 제한 시간 내에 퍼즐을 모두 해결하기 위한 숙련도의 최솟값을 정수로 return 하도록 solution 함수를 완성해 주세요.
 class Solution {
     public int solution(int[] diffs, int[] times, long limit) {
-
-        int level = 1;
+        int level_min = 1;
         int answer = 0;
 
-        while(true) {
+        int level_max = Arrays.stream(diffs).max().orElseThrow();
+
+        int search = 0;
+        while( level_min <= level_max) {
             long current = 0;
-            for (int index = 0; index < diffs.length; index++) {
-                int diff = diffs[index];
-                int time = times[index];
-                if (diff - level > 0) {
-                    if (index > 0) {
-                        current += (long) (times[index - 1] + times[index]) * (diff - level) + times[index];
-                    } else {
-                        current += (long) times[index] * (diff - level) + times[index];
-                    }
-                } else {
-                    current += times[index];
-                }
-                if(current > limit){
-                    return level;
-                }
+            search = (level_min + level_max) /2;
+
+            if(search(diffs, times, limit, search)){
+                level_max = search -1;
+            }else {
+                level_min = search +1;
             }
-            level++;
         }
+        if(search(diffs, times, limit, search)){
+            return search;
+        }else if(search(diffs, times, limit, search+1)){
+            return search+1;
+        }else {
+            return search-1;
+        }
+    }
+
+    public static boolean search(int[] diffs, int[] times, long limit, int search){
+        long current = 0;
+        for (int index = 0; index < diffs.length; index++) {
+            int diff = diffs[index] - search;
+            if (diff > 0) {
+                if (index > 0) {
+                    current += (long) (times[index - 1] + times[index]) * diff + times[index];
+                } else {
+                    current += (long) times[index] * diff + times[index];
+                }
+            } else {
+                current += times[index];
+            }
+            if (current > limit) {
+                return false;
+            }
+        }
+        return true;
     }
 }
